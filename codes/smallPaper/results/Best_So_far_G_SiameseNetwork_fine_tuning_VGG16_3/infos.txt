@@ -1,0 +1,54 @@
+train_batch_size = 32
+train_number_epochs = 30  
+lr= 0.000005
+ 
+0 for similar image and 1 for dis similar
+VGG 16 one fine tune + new FC layers
+Contrastive Loss function
+80% 20% train valid data
+resize to 128X128X3
+ 
+For early stopping:
+Train Accuracy: 73.13 %
+Test Accuracy:  58%
+ 
+For fully trained:
+Train Accuracy: 72.5 %
+Test Accuracy:  58%
+
+
+
+
+
+
+class SiameseNetwork(nn.Module):           # ip=(128,128,3)
+  def __init__(self):
+    super(SiameseNetwork,self).__init__()
+
+    self.model_vgg16=torchvision.models.vgg16(pretrained=True)                         
+    
+    # make the grads off for earlier layers(0 to 23 layers)
+    frozen_layers=nn.Sequential(   *(list(self.model_vgg16.children())[0][0:24] )   ) 
+    
+    for param in frozen_layers.parameters(): 
+      param.requires_grad = False
+
+    # self.num_ftrs=self.model_vgg16.features.out_features
+  
+    self.model_vgg16.avgpool= Identity()
+
+    self.model_vgg16.classifier= nn.Sequential(
+        nn.Linear(512*4*4,512),   ### for 128,128,3  ip size
+        nn.ReLU(inplace=True),
+        nn.Linear(512,512),
+        nn.ReLU(inplace=True),
+        nn.Linear(512,512),
+        nn.ReLU(inplace=True)
+    )
+
+
+  def forward(self,x1,x2):
+    x1= self.model_vgg16(x1)            
+    x2= self.model_vgg16(x2)        
+    
+    return x1,x2

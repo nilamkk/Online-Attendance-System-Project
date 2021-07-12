@@ -1,0 +1,94 @@
+train_batch_size = 32
+train_number_epochs = 200
+lr= 0.00005
+ 
+0 for similar image and 1 for dis similar
+Used scratch model
+Contrastive Loss function...........margin=2
+80% 20% train valid data
+resize to 120X120X3
+ 
+For early stopping:
+Train Accuracy: 61.12 %
+Test Accuracy: 61.11 %
+Threshold: 0.5
+ 
+For fully trained:
+Train Accuracy: 72.56  %
+Test Accuracy:  58.0 %
+Threshold: 0.92
+
+
+
+class SiameseNetwork(nn.Module):  
+                                                                                                  #ip size: 120 X 120 X 3
+  def __init__(self):
+
+    super(SiameseNetwork, self).__init__()
+
+    self.Conv1_1=  nn.Sequential(
+        nn.Conv2d(in_channels=3, out_channels=32, kernel_size=3, stride=1, padding=1),
+        nn.ReLU(inplace=True)
+    )
+    self.Conv1_2=  nn.Sequential(
+        nn.Conv2d(in_channels=32, out_channels=32, kernel_size=3, stride=1, padding=1),
+        nn.ReLU(inplace=True)
+    )
+    self.Pooling1_1= nn.MaxPool2d(kernel_size=2, stride=2, padding=0)
+
+    self.Conv2_1=  nn.Sequential(
+        nn.Conv2d(in_channels=32, out_channels=64, kernel_size=3, stride=1, padding=1),
+        nn.ReLU(inplace=True)
+    )
+    self.Conv2_2=  nn.Sequential(
+        nn.Conv2d(in_channels=64, out_channels=128, kernel_size=3, stride=1, padding=1),
+        nn.ReLU(inplace=True)
+    )
+    self.Pooling2_1= nn.MaxPool2d(kernel_size=2, stride=2, padding=0)
+
+    self.Conv3_1=  nn.Sequential(
+        nn.Conv2d(in_channels=128, out_channels=512, kernel_size=3, stride=1, padding=1),
+        nn.ReLU(inplace=True)
+    )
+    self.Conv3_2=  nn.Sequential(
+        nn.Conv2d(in_channels=512, out_channels=512, kernel_size=3, stride=1, padding=1),
+        nn.ReLU(inplace=True)
+    )
+    self.Pooling3_1= nn.MaxPool2d(kernel_size=2, stride=2, padding=0)
+
+    self.Conv4=  nn.Sequential(
+        nn.Conv2d(in_channels=512, out_channels=1024, kernel_size=3, stride=1, padding=1),
+        nn.ReLU(inplace=True)
+    )
+
+    self.FC = nn.Sequential(
+        nn.Linear(15*15*1024, 400),
+        nn.Linear(400, 400),
+        nn.Linear(400, 400)
+    )
+  def forward_simplifier(self,x):
+    x= self.Conv1_1(x)
+    x= self.Conv1_2(x)
+    x= self.Pooling1_1(x)
+
+    x= self.Conv2_1(x)
+    x= self.Conv2_2(x)
+    x= self.Pooling2_1(x)
+
+    x= self.Conv3_1(x)
+    x= self.Conv3_2(x)
+    x= self.Pooling3_1(x)
+
+    x= self.Conv4(x)
+
+    x= x.view(-1,15*15*1024)
+
+    x= self.FC(x)
+
+    return x
+
+  def forward(self, input1, input2):                                                  # op dim= 400
+    output1= self.forward_simplifier(input1)
+    output2= self.forward_simplifier(input2)
+    
+    return output1, output2
