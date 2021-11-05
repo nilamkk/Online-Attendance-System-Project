@@ -1,0 +1,12 @@
+{% extends "index.html" %}
+{% block title %}Attendance {% endblock %}
+
+{% block content %}
+<form action="/attendance" enctype="multipart/form-data" method="POST" >
+
+    <p><input type="file" name="file" required/></p>
+
+    <p><input type="submit" name="submit"/></p>
+
+</form>
+{% endblock %}

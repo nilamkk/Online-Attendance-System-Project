@@ -1,0 +1,15 @@
+{% extends "index.html" %}
+{% block title %}Register {% endblock %}
+
+{% block content %}
+<form action="/register" enctype="multipart/form-data" method="POST" >
+
+    <p>Name:</p>
+    <p><input type="text" name="nm" required/></p>
+
+    <p><input type="file" name="file" required/></p>
+
+    <p><input type="submit" name="submit"/></p>
+
+</form>
+{% endblock %}
